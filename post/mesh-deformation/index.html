@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Mesh Deformation | ARTools</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://shuangliu1992.github.io/favicon.ico?v=1584635549310">
+<link rel="stylesheet" href="https://shuangliu1992.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.
+Controls:
+Left click drag, right click ..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://shuangliu1992.github.io">
+        <img src="https://shuangliu1992.github.io/images/avatar.png?v=1584635549310" class="site-logo">
+        <h1 class="site-title">ARTools</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            Home
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            Archives
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            Tags
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            About
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      ARTools
+    </div>
+    <div class="site-footer">
+       | <a class="rss" href="https://shuangliu1992.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Mesh Deformation</h2>
+            <div class="post-date">2020-03-15</div>
+            
+            <div class="post-content" v-pre>
+              <p>A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.</p>
+<p>Controls:<br>
+Left click drag, right click rotate, scroll wheel to zoom.</p>
+<p>step 1:<br>
+Click the Select button to choose an area to be deformed. Selected area will be marked with black dots.<br>
+By default the whole mesh is selected except for the largest boundary.<br>
+step 2:<br>
+Select control points by holding the middle button, which is highlighted with a blue marker.<br>
+Add/remove/update them shown in the list. Marked with green points.<br>
+step 3:<br>
+Drag the active control points by holding crtl. Only the checked anchors would be dragged</p>
+<video width="640" height="480" controls>
+  <source src="../../test.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<iframe width="840px" height="650px" scrolling="no" frameborder="0" src="../../FaceWeb.html?program=deform_template"></iframe>
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://shuangliu1992.github.io/post/mesh-simplification-texture/">
+                  <h3 class="post-title">
+                    Mesh Simplification
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

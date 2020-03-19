@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://shuangliu1992.github.io</id>
+    <title>ARTools</title>
+    <updated>2020-03-19T16:32:31.302Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://shuangliu1992.github.io"/>
+    <link rel="self" href="https://shuangliu1992.github.io/atom.xml"/>
+    <subtitle>ARTools</subtitle>
+    <logo>https://shuangliu1992.github.io/images/avatar.png</logo>
+    <icon>https://shuangliu1992.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2020, ARTools</rights>
+    <entry>
+        <title type="html"><![CDATA[Mesh Deformation]]></title>
+        <id>https://shuangliu1992.github.io/post/mesh-deformation/</id>
+        <link href="https://shuangliu1992.github.io/post/mesh-deformation/">
+        </link>
+        <updated>2020-03-15T07:36:09.000Z</updated>
+        <content type="html"><![CDATA[<p>A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.</p>
+<p>Controls:<br>
+Left click drag, right click rotate, scroll wheel to zoom.</p>
+<p>step 1:<br>
+Click the Select button to choose an area to be deformed. Selected area will be marked with black dots.<br>
+By default the whole mesh is selected except for the largest boundary.<br>
+step 2:<br>
+Select control points by holding the middle button, which is highlighted with a blue marker.<br>
+Add/remove/update them shown in the list. Marked with green points.<br>
+step 3:<br>
+Drag the active control points by holding crtl. Only the checked anchors would be dragged</p>
+<video width="640" height="480" controls>
+  <source src="../../test.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<iframe width="840px" height="650px" scrolling="no" frameborder="0" src="../../FaceWeb.html?program=deform_template"></iframe>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Mesh Simplification]]></title>
+        <id>https://shuangliu1992.github.io/post/mesh-simplification-texture/</id>
+        <link href="https://shuangliu1992.github.io/post/mesh-simplification-texture/">
+        </link>
+        <updated>2020-03-06T16:13:15.000Z</updated>
+        <content type="html"><![CDATA[<p>Most of the time when we deploy 3D application we deliver a simplified version of the mesh rather than the raw mesh created by artists.</p>
+<p>To simplify a mesh we collapse edges that are not very important. There are a couple of different weights and placement strategies, as demostrated below. Click start to run an example or upload your own mesh to get a feeling of how it works.</p>
+<iframe width=640 height=480 src='../../FaceWeb.html?program=decimate_obj'></iframe>
+]]></content>
+    </entry>
+</feed>

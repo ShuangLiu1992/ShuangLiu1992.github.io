@@ -1,0 +1,95 @@
+<body>
+  <script src="assets/jquery-3.4.1.slim.min.js"></script>
+  <script src="assets/popper.min.js"></script>
+  <link rel="stylesheet" href="assets/bootstrap.min.css">
+  <script src="assets/bootstrap.min.js"></script>
+
+  <style>
+  .row::after {
+    content: "";
+    clear: both;
+    display: table;
+  }
+  .col {
+    float: left;
+  }
+  body{margin:0;}
+  </style>
+
+  <script type="module">
+    var progress_div = document.createElement('div');
+    progress_div.className = 'progress';
+    progress_div.setAttribute("style", "width: 100%");
+    var bar_div = document.createElement('div');
+    bar_div.id = 'progressbar_div';
+    bar_div.setAttribute("class", "progress-bar bg-success");
+    bar_div.setAttribute("role", "progressbar");
+
+    progress_div.appendChild(bar_div);
+
+    document.body.appendChild(progress_div);
+
+    const params = new URLSearchParams(window.location.search);
+    console.log(params);
+    let load_program = params.get('program');
+    function polyfill_fetch(url) {
+        console.log(url);
+        return new Promise(function (resolve, reject) {
+            window.org_fetch('./' + load_program + '.wasm').then(response => {
+                let reader = response.body.getReader();
+                const length = response.headers.get('Content-Length');
+                let r = 0;
+                let stream = new ReadableStream({
+                    start(controller) {
+
+                        return pump();
+
+                        function pump() {
+                            reader.read().then(({ done, value }) => {
+                                if (done) {
+                                    controller.close();
+                                } else {
+                                    r += value.length;
+                                    bar_div.setAttribute("style", `width: ${r / length * 100}%`);
+                                    controller.enqueue(value);
+                                    pump();
+                                }
+                            })
+                        }
+
+                    }
+                });
+        
+                var options = {
+                    headers: new Headers({'content-type': 'application/wasm'}),
+                };
+                resolve(new Response(stream, options));
+
+            });
+
+        });
+    }
+
+    async function init() {
+        document.getElementById('load_program_btn').parentElement.removeChild(document.getElementById('load_program_btn'));
+        let import_js = './' + load_program + '.js';
+        let Module = import(import_js);
+      
+        window.org_fetch = fetch;
+        window.fetch = polyfill_fetch;
+        Module.then( module => { 
+            let instance = module.default();
+            window.instance = instance;
+            window.widgets = {};
+            window.closeable = {};
+        });
+
+    }
+    window.init = init;
+    if(params.get('auto_start') == "1") {
+        init();
+    }
+
+  </script>
+<button id='load_program_btn' onclick="window.init()">Load Demo</button>
+</body>
