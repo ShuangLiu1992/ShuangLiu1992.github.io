@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://shuangliu1992.github.io/favicon.ico?v=1584716928699">
+<link rel="shortcut icon" href="https://shuangliu1992.github.io/favicon.ico?v=1584726613692">
 <link rel="stylesheet" href="https://shuangliu1992.github.io/styles/main.css">
 
 
@@ -28,7 +28,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://shuangliu1992.github.io">
-        <img src="https://shuangliu1992.github.io/images/avatar.png?v=1584716928699" class="site-logo">
+        <img src="https://shuangliu1992.github.io/images/avatar.png?v=1584726613692" class="site-logo">
         <h1 class="site-title">ARTools</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -91,25 +91,42 @@
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
             <h2 class="post-title">Pretending to be programming with Qt on the Web</h2>
-            <div class="post-date">2020-03-17</div>
+            <div class="post-date">2020-03-15</div>
             
             <div class="post-content" v-pre>
               <p>Qt is a well established framework for GUI programming. Many inhouse tools have been created by people who works with C++ or Python alot, for example researchers, pipeline developer etc. These tools are created to perform simple tasks that doesn't require fancy GUI. Not that you can't create fancy GUI with Qt, but frontend people usually prefer to use different frameworks.</p>
 <p>Imagine you have created a little tool that lets you deform a mesh on desktop with Qt like this:<br>
-<video  src="../../qt_native_example.mp4" type="video/mp4" width="640" height="480" controls></p>
-  <source src="../../qt_native_example.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
-<p>Would it be nice to compile it and run it inside a browser so you don't need to install and compile Qt on every platform?</p>
+<video  src="../../qt_native_example.mp4" type="video/mp4" width="640" height="480" controls><br>
+</video></p>
+<p>Would it be nice to compile it and run it inside a browser so you don't need to install and compile Qt on every platform? Check out its web equivalent without changing a single line of code here: <a href="../mesh-deformation/">Mesh Deformation</a></p>
+<p>Well it's actually quite simple to do so by implmenting a bunch of phony Qt classes that create html components that corresponds to the Qt widgets.</p>
+<pre><code>#include &lt;emscripten.h&gt;
+QLayout::QLayout(QObject *parent) {
+    _parent = parent;
+    EM_ASM(
+        {
+            var layout   = document.createElement('div');
+            layout.style = 'display: grid; grid-gap: 10px; padding: 10px;';
+            if ($1 == 0) {
+                document.body.appendChild(layout);
+            } else {
+                window.widgets[$1].appendChild(layout);
+            }
+            window.widgets[$0] = layout;
+        },
+        this, parent);
+}
+</code></pre>
+<p>Check out QtEmcc <a href="https://github.com/ShuangLiu1992/QtEMCC">https://github.com/ShuangLiu1992/QtEMCC</a> and build it with Emscripten with your app to try it out. Currently only a very limited set of widgets are implmeneted though.</p>
 
             </div>
             
             
               <div class="next-post">
                 <div class="next">下一篇</div>
-                <a href="https://shuangliu1992.github.io/post/mesh-deformation/">
+                <a href="https://shuangliu1992.github.io/post/mesh-simplification-texture/">
                   <h3 class="post-title">
-                    Mesh Deformation
+                    Mesh Simplification
                   </h3>
                 </a>
               </div>

@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://shuangliu1992.github.io/favicon.ico?v=1584716928699">
+<link rel="shortcut icon" href="https://shuangliu1992.github.io/favicon.ico?v=1584726613692">
 <link rel="stylesheet" href="https://shuangliu1992.github.io/styles/main.css">
 
 
@@ -19,8 +19,12 @@
 
 
     <meta name="description" content="A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.
-Controls:
-Left click drag, right click ..." />
+
+  Load Demo
+  
+   
+      
+        Clos..." />
     <meta name="keywords" content="" />
   </head>
   <body>
@@ -30,7 +34,7 @@ Left click drag, right click ..." />
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://shuangliu1992.github.io">
-        <img src="https://shuangliu1992.github.io/images/avatar.png?v=1584716928699" class="site-logo">
+        <img src="https://shuangliu1992.github.io/images/avatar.png?v=1584726613692" class="site-logo">
         <h1 class="site-title">ARTools</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -93,10 +97,20 @@ Left click drag, right click ..." />
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
             <h2 class="post-title">Mesh Deformation</h2>
-            <div class="post-date">2020-03-14</div>
+            <div class="post-date">2020-03-20</div>
             
             <div class="post-content" v-pre>
               <p>A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.</p>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <button onclick="let s = document.createElement('iframe'); s.setAttribute('src','../../FaceWeb.html?program=deform_template&auto_start=1');s.style.width='100%';s.style.height='80vh';document.getElementById('iframe_host').appendChild(s); document.getElementById('load_demo').style.display='block';" class="w3-button w3-black">Load Demo</button>
+  <div id="load_demo" class="w3-modal">
+   <div class="w3-modal-content" style="position: fixed; top:10%; left: 10%; width: 80%; height: 80%">
+      <div class="w3-container">
+        <span onclick="document.getElementById('load_demo').style.display='none';document.getElementById('iframe_host').innerHTML='';" class="w3-button w3-black w3-display-topright">Close</span>
+        <div id="iframe_host" style="width: 100%; height: 100%;"></div>
+      </div>
+    </div>
+  </div>
 <p>Controls:<br>
 Left click drag, right click rotate, scroll wheel to zoom.</p>
 <p>step 1:<br>
@@ -107,19 +121,16 @@ Select control points by holding the middle button, which is highlighted with a 
 Add/remove/update them shown in the list. Marked with green points.<br>
 step 3:<br>
 Drag the active control points by holding crtl. Only the checked anchors would be dragged</p>
-<video width="640" height="480" controls>
-  <source src="../../test.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
-<iframe width="840px" height="650px" scrolling="no" frameborder="0" src="../../FaceWeb.html?program=deform_template"></iframe>
+<p><video  src="../../test.mp4" type="video/mp4" width="640" height="480" controls><video></p>
+
             </div>
             
             
               <div class="next-post">
                 <div class="next">下一篇</div>
-                <a href="https://shuangliu1992.github.io/post/mesh-simplification-texture/">
+                <a href="https://shuangliu1992.github.io/post/pretending-to-be-programming-with-qt-on-the-web/">
                   <h3 class="post-title">
-                    Mesh Simplification
+                    Pretending to be programming with Qt on the Web
                   </h3>
                 </a>
               </div>

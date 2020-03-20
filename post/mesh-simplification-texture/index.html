@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://shuangliu1992.github.io/favicon.ico?v=1584716928699">
+<link rel="shortcut icon" href="https://shuangliu1992.github.io/favicon.ico?v=1584726613692">
 <link rel="stylesheet" href="https://shuangliu1992.github.io/styles/main.css">
 
 
@@ -28,7 +28,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://shuangliu1992.github.io">
-        <img src="https://shuangliu1992.github.io/images/avatar.png?v=1584716928699" class="site-logo">
+        <img src="https://shuangliu1992.github.io/images/avatar.png?v=1584726613692" class="site-logo">
         <h1 class="site-title">ARTools</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -91,14 +91,22 @@
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
             <h2 class="post-title">Mesh Simplification</h2>
-            <div class="post-date">2020-03-05</div>
+            <div class="post-date">2020-03-04</div>
             
             <div class="post-content" v-pre>
               <p>Most of the time when we deploy 3D application we deliver a simplified version of the mesh rather than the raw mesh created by artists.</p>
 <p>To simplify a mesh we collapse edges that are not very important. There are a couple of different weights and placement strategies. Click load demo to try it out.</p>
 <p>You can decide which areas should be simplified more aggresively by clicking the paint button and paint weights. Area with heavier weights would be simplilifed more aggresively.</p>
-<iframe width="840px" height="750px" scrolling="no" frameborder="0" src='../../FaceWeb.html?program=decimate_obj'></iframe>
-
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <button onclick="let s = document.createElement('iframe'); s.setAttribute('src','../../FaceWeb.html?program=decimate_obj&auto_start=1');s.style.width='100%';s.style.height='80vh';document.getElementById('iframe_host').appendChild(s); document.getElementById('load_demo').style.display='block';" class="w3-button w3-black">Load Demo</button>
+  <div id="load_demo" class="w3-modal">
+   <div class="w3-modal-content" style="position: fixed; top:10%; left: 10%; width: 80%; height: 80%">
+      <div class="w3-container">
+        <span onclick="document.getElementById('load_demo').style.display='none';document.getElementById('iframe_host').innerHTML='';" class="w3-button w3-black w3-display-topright">Close</span>
+        <div id="iframe_host" style="width: 100%; height: 100%;"></div>
+      </div>
+    </div>
+  </div>
             </div>
             
               <div class="tag-container">
