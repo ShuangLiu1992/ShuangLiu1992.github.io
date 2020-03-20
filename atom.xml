@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://shuangliu1992.github.io</id>
     <title>ARTools</title>
-    <updated>2020-03-19T16:32:31.302Z</updated>
+    <updated>2020-03-20T15:08:50.929Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://shuangliu1992.github.io"/>
     <link rel="self" href="https://shuangliu1992.github.io/atom.xml"/>
@@ -11,11 +11,26 @@
     <icon>https://shuangliu1992.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, ARTools</rights>
     <entry>
+        <title type="html"><![CDATA[Pretending to be programming with Qt on the Web]]></title>
+        <id>https://shuangliu1992.github.io/post/pretending-to-be-programming-with-qt-on-the-web/</id>
+        <link href="https://shuangliu1992.github.io/post/pretending-to-be-programming-with-qt-on-the-web/">
+        </link>
+        <updated>2020-03-17T16:54:30.000Z</updated>
+        <content type="html"><![CDATA[<p>Qt is a well established framework for GUI programming. Many inhouse tools have been created by people who works with C++ or Python alot, for example researchers, pipeline developer etc. These tools are created to perform simple tasks that doesn't require fancy GUI. Not that you can't create fancy GUI with Qt, but frontend people usually prefer to use different frameworks.</p>
+<p>Imagine you have created a little tool that lets you deform a mesh on desktop with Qt like this:<br>
+<video  src="../../qt_native_example.mp4" type="video/mp4" width="640" height="480" controls></p>
+  <source src="../../qt_native_example.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>Would it be nice to compile it and run it inside a browser so you don't need to install and compile Qt on every platform?</p>
+]]></content>
+    </entry>
+    <entry>
         <title type="html"><![CDATA[Mesh Deformation]]></title>
         <id>https://shuangliu1992.github.io/post/mesh-deformation/</id>
         <link href="https://shuangliu1992.github.io/post/mesh-deformation/">
         </link>
-        <updated>2020-03-15T07:36:09.000Z</updated>
+        <updated>2020-03-14T23:36:09.000Z</updated>
         <content type="html"><![CDATA[<p>A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.</p>
 <p>Controls:<br>
 Left click drag, right click rotate, scroll wheel to zoom.</p>
@@ -38,10 +53,11 @@ Your browser does not support the video tag.
         <id>https://shuangliu1992.github.io/post/mesh-simplification-texture/</id>
         <link href="https://shuangliu1992.github.io/post/mesh-simplification-texture/">
         </link>
-        <updated>2020-03-06T16:13:15.000Z</updated>
+        <updated>2020-03-05T00:13:15.000Z</updated>
         <content type="html"><![CDATA[<p>Most of the time when we deploy 3D application we deliver a simplified version of the mesh rather than the raw mesh created by artists.</p>
-<p>To simplify a mesh we collapse edges that are not very important. There are a couple of different weights and placement strategies, as demostrated below. Click start to run an example or upload your own mesh to get a feeling of how it works.</p>
-<iframe width=640 height=480 src='../../FaceWeb.html?program=decimate_obj'></iframe>
+<p>To simplify a mesh we collapse edges that are not very important. There are a couple of different weights and placement strategies. Click load demo to try it out.</p>
+<p>You can decide which areas should be simplified more aggresively by clicking the paint button and paint weights. Area with heavier weights would be simplilifed more aggresively.</p>
+<iframe width="840px" height="750px" scrolling="no" frameborder="0" src='../../FaceWeb.html?program=decimate_obj'></iframe>
 ]]></content>
     </entry>
 </feed>
