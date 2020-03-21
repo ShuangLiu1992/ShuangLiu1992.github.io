@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://shuangliu1992.github.io/favicon.ico?v=1584726613692">
+<link rel="shortcut icon" href="https://shuangliu1992.github.io/favicon.ico?v=1584803427690">
 <link rel="stylesheet" href="https://shuangliu1992.github.io/styles/main.css">
 
 
@@ -16,6 +16,15 @@
 <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-161478953-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-161478953-1');
+</script>
 
 
     <meta name="description" content="A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.
@@ -34,7 +43,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://shuangliu1992.github.io">
-        <img src="https://shuangliu1992.github.io/images/avatar.png?v=1584726613692" class="site-logo">
+        <img src="https://shuangliu1992.github.io/images/avatar.png?v=1584803427690" class="site-logo">
         <h1 class="site-title">ARTools</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -97,11 +106,11 @@
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
             <h2 class="post-title">Mesh Deformation</h2>
-            <div class="post-date">2020-03-20</div>
+            <div class="post-date">2020-03-19</div>
             
             <div class="post-content" v-pre>
               <p>A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.</p>
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="../../assets/w3.css">
   <button onclick="let s = document.createElement('iframe'); s.setAttribute('src','../../FaceWeb.html?program=deform_template&auto_start=1');s.style.width='100%';s.style.height='80vh';document.getElementById('iframe_host').appendChild(s); document.getElementById('load_demo').style.display='block';" class="w3-button w3-black">Load Demo</button>
   <div id="load_demo" class="w3-modal">
    <div class="w3-modal-content" style="position: fixed; top:10%; left: 10%; width: 80%; height: 80%">
@@ -111,16 +120,12 @@
       </div>
     </div>
   </div>
-<p>Controls:<br>
-Left click drag, right click rotate, scroll wheel to zoom.</p>
-<p>step 1:<br>
-Click the Select button to choose an area to be deformed. Selected area will be marked with black dots.<br>
+<p>Controls: Left click drag, right click rotate, scroll wheel to zoom.<br>
+optional step: Click the Select button to choose an area to be deformed. Selected area will be marked with black dots.<br>
 By default the whole mesh is selected except for the largest boundary.<br>
-step 2:<br>
-Select control points by holding the middle button, which is highlighted with a blue marker.<br>
+step 1: Select control points by holding the alt key and left button, which will be highlighted with a blue marker.<br>
 Add/remove/update them shown in the list. Marked with green points.<br>
-step 3:<br>
-Drag the active control points by holding crtl. Only the checked anchors would be dragged</p>
+step 2: Drag the active control points by holding crtl. Only the checked anchors would be dragged</p>
 <p><video  src="../../test.mp4" type="video/mp4" width="640" height="480" controls><video></p>
 
             </div>

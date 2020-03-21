@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://shuangliu1992.github.io</id>
     <title>ARTools</title>
-    <updated>2020-03-20T17:50:18.910Z</updated>
+    <updated>2020-03-21T15:10:30.086Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://shuangliu1992.github.io"/>
     <link rel="self" href="https://shuangliu1992.github.io/atom.xml"/>
@@ -15,9 +15,9 @@
         <id>https://shuangliu1992.github.io/post/mesh-deformation/</id>
         <link href="https://shuangliu1992.github.io/post/mesh-deformation/">
         </link>
-        <updated>2020-03-20T09:49:36.000Z</updated>
+        <updated>2020-03-19T17:49:36.000Z</updated>
         <content type="html"><![CDATA[<p>A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.</p>
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="../../assets/w3.css">
   <button onclick="let s = document.createElement('iframe'); s.setAttribute('src','../../FaceWeb.html?program=deform_template&auto_start=1');s.style.width='100%';s.style.height='80vh';document.getElementById('iframe_host').appendChild(s); document.getElementById('load_demo').style.display='block';" class="w3-button w3-black">Load Demo</button>
   <div id="load_demo" class="w3-modal">
    <div class="w3-modal-content" style="position: fixed; top:10%; left: 10%; width: 80%; height: 80%">
@@ -27,16 +27,12 @@
       </div>
     </div>
   </div>
-<p>Controls:<br>
-Left click drag, right click rotate, scroll wheel to zoom.</p>
-<p>step 1:<br>
-Click the Select button to choose an area to be deformed. Selected area will be marked with black dots.<br>
+<p>Controls: Left click drag, right click rotate, scroll wheel to zoom.<br>
+optional step: Click the Select button to choose an area to be deformed. Selected area will be marked with black dots.<br>
 By default the whole mesh is selected except for the largest boundary.<br>
-step 2:<br>
-Select control points by holding the middle button, which is highlighted with a blue marker.<br>
+step 1: Select control points by holding the alt key and left button, which will be highlighted with a blue marker.<br>
 Add/remove/update them shown in the list. Marked with green points.<br>
-step 3:<br>
-Drag the active control points by holding crtl. Only the checked anchors would be dragged</p>
+step 2: Drag the active control points by holding crtl. Only the checked anchors would be dragged</p>
 <p><video  src="../../test.mp4" type="video/mp4" width="640" height="480" controls><video></p>
 ]]></content>
     </entry>
@@ -45,8 +41,8 @@ Drag the active control points by holding crtl. Only the checked anchors would b
         <id>https://shuangliu1992.github.io/post/pretending-to-be-programming-with-qt-on-the-web/</id>
         <link href="https://shuangliu1992.github.io/post/pretending-to-be-programming-with-qt-on-the-web/">
         </link>
-        <updated>2020-03-15T16:54:30.000Z</updated>
-        <content type="html"><![CDATA[<p>Qt is a well established framework for GUI programming. Many inhouse tools have been created by people who works with C++ or Python alot, for example researchers, pipeline developer etc. These tools are created to perform simple tasks that doesn't require fancy GUI. Not that you can't create fancy GUI with Qt, but frontend people usually prefer to use different frameworks.</p>
+        <updated>2020-03-15T08:54:30.000Z</updated>
+        <content type="html"><![CDATA[<p>Qt is a well established framework for GUI programming. Many inhouse tools have been created by people who works with C++ or Python a lot, for example researchers, pipeline developer etc. These tools are created to perform simple tasks that doesn't require fancy GUI. Not that you can't create fancy GUI with Qt, but frontend people usually prefer to use different frameworks.</p>
 <p>Imagine you have created a little tool that lets you deform a mesh on desktop with Qt like this:<br>
 <video  src="../../qt_native_example.mp4" type="video/mp4" width="640" height="480" controls><br>
 </video></p>
@@ -77,11 +73,11 @@ QLayout::QLayout(QObject *parent) {
         <id>https://shuangliu1992.github.io/post/mesh-simplification-texture/</id>
         <link href="https://shuangliu1992.github.io/post/mesh-simplification-texture/">
         </link>
-        <updated>2020-03-04T08:13:15.000Z</updated>
+        <updated>2020-03-04T00:13:15.000Z</updated>
         <content type="html"><![CDATA[<p>Most of the time when we deploy 3D application we deliver a simplified version of the mesh rather than the raw mesh created by artists.</p>
 <p>To simplify a mesh we collapse edges that are not very important. There are a couple of different weights and placement strategies. Click load demo to try it out.</p>
 <p>You can decide which areas should be simplified more aggresively by clicking the paint button and paint weights. Area with heavier weights would be simplilifed more aggresively.</p>
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="../../assets/w3.css">
   <button onclick="let s = document.createElement('iframe'); s.setAttribute('src','../../FaceWeb.html?program=decimate_obj&auto_start=1');s.style.width='100%';s.style.height='80vh';document.getElementById('iframe_host').appendChild(s); document.getElementById('load_demo').style.display='block';" class="w3-button w3-black">Load Demo</button>
   <div id="load_demo" class="w3-modal">
    <div class="w3-modal-content" style="position: fixed; top:10%; left: 10%; width: 80%; height: 80%">
