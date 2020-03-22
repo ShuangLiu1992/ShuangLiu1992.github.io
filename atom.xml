@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://shuangliu1992.github.io</id>
     <title>ARTools</title>
-    <updated>2020-03-21T15:10:30.086Z</updated>
+    <updated>2020-03-22T14:07:53.770Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://shuangliu1992.github.io"/>
     <link rel="self" href="https://shuangliu1992.github.io/atom.xml"/>
@@ -15,7 +15,7 @@
         <id>https://shuangliu1992.github.io/post/mesh-deformation/</id>
         <link href="https://shuangliu1992.github.io/post/mesh-deformation/">
         </link>
-        <updated>2020-03-19T17:49:36.000Z</updated>
+        <updated>2020-03-19T09:49:36.000Z</updated>
         <content type="html"><![CDATA[<p>A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.</p>
 <link rel="stylesheet" href="../../assets/w3.css">
   <button onclick="let s = document.createElement('iframe'); s.setAttribute('src','../../FaceWeb.html?program=deform_template&auto_start=1');s.style.width='100%';s.style.height='80vh';document.getElementById('iframe_host').appendChild(s); document.getElementById('load_demo').style.display='block';" class="w3-button w3-black">Load Demo</button>
@@ -27,12 +27,10 @@
       </div>
     </div>
   </div>
-<p>Controls: Left click drag, right click rotate, scroll wheel to zoom.<br>
-optional step: Click the Select button to choose an area to be deformed. Selected area will be marked with black dots.<br>
-By default the whole mesh is selected except for the largest boundary.<br>
-step 1: Select control points by holding the alt key and left button, which will be highlighted with a blue marker.<br>
-Add/remove/update them shown in the list. Marked with green points.<br>
-step 2: Drag the active control points by holding crtl. Only the checked anchors would be dragged</p>
+<p>Controls: Hold Shift and left click to select an anchor point, hold Crtl to deform the mesh. Left button to drag the mesh, right button to rotate, scroll wheel to zoom.<br>
+optional step:  By default the whole mesh is selected except for the largest boundary. You can click on select to choose region of interest.</p>
+<p>To add more than one control anchor, click add/remove/update to update the currently selected anchor.</p>
+<p>Check the option see instant feedback during dragging. Which is pretty slow for the default deformation method As-Rigid-As-Possible (ARAP). Without SSE WebAssembly the computation is quite heavy even for powerful CPUs. Try other simpler deformation methods in the dropdown list such as Biharmonic deformation.</p>
 <p><video  src="../../test.mp4" type="video/mp4" width="640" height="480" controls><video></p>
 ]]></content>
     </entry>
