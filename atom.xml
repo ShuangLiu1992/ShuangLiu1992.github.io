@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://shuangliu1992.github.io</id>
     <title>ARTools</title>
-    <updated>2020-03-23T14:24:17.829Z</updated>
+    <updated>2020-03-23T16:32:58.520Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://shuangliu1992.github.io"/>
     <link rel="self" href="https://shuangliu1992.github.io/atom.xml"/>
@@ -24,7 +24,7 @@
         <id>https://shuangliu1992.github.io/post/mesh-deformation/</id>
         <link href="https://shuangliu1992.github.io/post/mesh-deformation/">
         </link>
-        <updated>2020-03-19T09:49:36.000Z</updated>
+        <updated>2020-03-19T01:49:36.000Z</updated>
         <content type="html"><![CDATA[<p>A small demo of As-Rigid-As-Possible (ARAP) deformation, Click load demo to run.</p>
 <link rel="stylesheet" href="../../assets/w3.css">
   <button onclick="let s = document.createElement('iframe'); s.setAttribute('src','../../FaceWeb.html?program=deform_template&auto_start=1');s.style.width='100%';s.style.height='80vh';document.getElementById('iframe_host').appendChild(s); document.getElementById('load_demo').style.display='block';" class="w3-button w3-black">Load Demo</button>
