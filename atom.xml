@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://shuangliu1992.github.io</id>
     <title>ARTools</title>
-    <updated>2020-03-23T16:32:58.520Z</updated>
+    <updated>2020-04-05T20:18:27.339Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://shuangliu1992.github.io"/>
     <link rel="self" href="https://shuangliu1992.github.io/atom.xml"/>
@@ -48,8 +48,8 @@ optional step:  By default the whole mesh is selected except for the largest bou
         <id>https://shuangliu1992.github.io/post/pretending-to-be-programming-with-qt-on-the-web/</id>
         <link href="https://shuangliu1992.github.io/post/pretending-to-be-programming-with-qt-on-the-web/">
         </link>
-        <updated>2020-03-15T08:54:30.000Z</updated>
-        <content type="html"><![CDATA[<p>Qt is a well established framework for GUI programming. Many inhouse tools have been created by people who works with C++ or Python a lot, for example researchers, pipeline developer etc. These tools are created to perform simple tasks that doesn't require fancy GUI. Not that you can't create fancy GUI with Qt, but frontend people usually prefer to use different frameworks.</p>
+        <updated>2020-03-14T16:54:30.000Z</updated>
+        <content type="html"><![CDATA[<p>Qt is a well established framework for GUI programming. Many inhouse tools have been created by people who works with C++ or Python a lot, for example researchers, pipeline developer etc. These tools are created to perform simple tasks that doesn't require fancy GUI. Not that you can't create fancy GUI with Qt, but frontend people usually prefer more flexible/dynamic and easier to use frameworks.</p>
 <p>Imagine you have created a little tool that lets you deform a mesh on desktop with Qt like this:<br>
 <video  src="../../qt_native_example.mp4" type="video/mp4" width="640" height="480" controls><br>
 </video></p>
@@ -73,6 +73,7 @@ QLayout::QLayout(QObject *parent) {
 }
 </code></pre>
 <p>Check out QtEmcc <a href="https://github.com/ShuangLiu1992/QtEMCC">https://github.com/ShuangLiu1992/QtEMCC</a> and build it with Emscripten with your app to try it out. Currently only a very limited set of widgets are implmeneted though.</p>
+<p>There does exists libraries like: <a href="https://www.webtoolkit.eu/wt">https://www.webtoolkit.eu/wt</a>, which has been out for a while and seems very stable and promising. But the point of QtEMCC is to pretend to be Qt without having to use the heavey weight Qt Emscripten build, (which is rendered through webgl I believe), and instead directly use your Qt code and use native HTML widget to make the page lightweight.</p>
 ]]></content>
     </entry>
     <entry>
