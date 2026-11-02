@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>VioLive</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #eee; overflow: hidden;
+               font: 13px/1.35 -apple-system, system-ui, sans-serif; -webkit-user-select: none; user-select: none; }
+  #stage { position: absolute; inset: 0; }
+  video, #preview, #gl, #overlay { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  #gl { pointer-events: none; }
+  #overlay { touch-action: none; }
+  #map { position: absolute; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); width: 46vmin; height: 46vmin;
+         background: rgba(0,0,0,.55); border-radius: 10px; }
+  #bar { position: absolute; left: 0; right: 0; top: 0; padding: calc(6px + env(safe-area-inset-top)) 8px 6px;
+         display: flex; gap: 6px; align-items: center; flex-wrap: wrap; background: rgba(0,0,0,.55); }
+  #bar select, #bar button { font: inherit; padding: 6px 10px; border-radius: 8px; border: 0; }
+  #bar button { background: #2f7df6; color: #fff; }
+  #bar button.stop { background: #d33; }
+  #status { flex: 1 1 100%; white-space: pre; font: 11px/1.3 ui-monospace, Menlo, monospace; }
+  #legend { position: absolute; left: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); font-size: 11px;
+            background: rgba(0,0,0,.55); padding: 4px 8px; border-radius: 8px; }
+  .raw { color: #ffa23a; } .pgo { color: #3ddc84; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <video id="video" playsinline muted autoplay></video>
+  <canvas id="preview" style="display:none"></canvas>
+  <canvas id="gl"></canvas>
+  <canvas id="overlay"></canvas>
+  <canvas id="map"></canvas>
+  <div id="legend"><span class="raw">&#9644; VIO</span> &nbsp; <span class="pgo">&#9644; PGO</span> &nbsp; 1 grid = 1 m</div>
+  <div id="bar">
+    <select id="preset">
+      <option value="vins">VINS (accurate)</option>
+      <option value="vins_pgo">VINS + PGO</option>
+      <option value="msckf">MSCKF (cheap)</option>
+      <option value="msckf_pgo">MSCKF + PGO</option>
+    </select>
+    <label id="onlineTdLabel" title="Re-estimate the camera-IMU time offset while running"><input type="checkbox" id="onlineTd"> Online offset</label>
+    <select id="tdMethod" title="How: camera rotation vs gyro (any preset), or the MSCKF's own time-offset state">
+      <option value="rotation">rotation fit</option>
+      <option value="filter">filter state (MSCKF)</option>
+    </select>
+    <button id="go">Start</button>
+    <button id="save" style="display:none;background:#555">Save</button>
+    <button id="clear" style="display:none;background:#555">Clear anchors</button>
+    <label id="smoothLabel" style="display:none"><input type="checkbox" id="smooth"> Smooth</label>
+    <div id="status">loading…</div>
+  </div>
+</div>
+<script>
+  // SharedArrayBuffer needs cross-origin isolation. tests/web/serve.py sends the headers; a static
+  // host that cannot gets them from coi_sw.js (registered once, then the page reloads).
+  if (!self.crossOriginIsolated && 'serviceWorker' in navigator && !sessionStorage.coiReloaded) {
+    sessionStorage.coiReloaded = '1';
+    navigator.serviceWorker.register('coi_sw.js').then(() => location.reload());
+  }
+</script>
+<script src="VioLive.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
