@@ -173,4 +173,6 @@
   };
   // For tests: the run's counters (the drawn state is the wasm's own).
   window.__violiveFeed = () => ({ frames: frameCount, imu: imuCount, status: feed.status });
+  // For tests: the anchors, their note and the smoother, as the app holds them (VioLiveApp.cc vla_state).
+  window.__violiveAnchors = () => M && JSON.parse(M.UTF8ToString(M._vla_state()));
 })();
