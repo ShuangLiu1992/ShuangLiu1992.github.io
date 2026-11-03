@@ -58,24 +58,56 @@
       minDelay = Math.min(minDelay, now - tsSec);
       return tsSec + minDelay;
     };
-    if (typeof MediaStreamTrackProcessor === 'undefined') throw new Error('no MediaStreamTrackProcessor (WebCodecs)');
-    const reader = new MediaStreamTrackProcessor({ track, maxBufferSize: 1 }).readable.getReader();
-    (async () => {
-      while (alive) {
-        const { value: frame, done } = await reader.read();
-        if (done || !frame) break;
-        try {
-          // RGBA for the preview: the wasm keeps the colour frame and takes its gray itself.
-          const vr = frame.visibleRect || { x: 0, y: 0, width: frame.codedWidth, height: frame.codedHeight };
-          const bytes = vr.width * vr.height * 4;
-          await frame.copyTo(frameBuffer(bytes), { rect: vr, format: 'RGBA' });
-          pushFrame(frameTime(frame.timestamp * 1e-6), vr.width, vr.height, 4);
-        } catch (e) { feed.status = 'frame failed: ' + (e.message || e); console.error(e); }
-        frame.close();
-      }
-    })();
-    feed.status = 'live';
-    return () => { alive = false; window.removeEventListener('devicemotion', onMotion); track.stop(); };
+    let video = null;
+    if (typeof MediaStreamTrackProcessor !== 'undefined' && params.get('camera') !== 'canvas') {
+      const reader = new MediaStreamTrackProcessor({ track, maxBufferSize: 1 }).readable.getReader();
+      (async () => {
+        while (alive) {
+          const { value: frame, done } = await reader.read();
+          if (done || !frame) break;
+          try {
+            // RGBA for the preview: the wasm keeps the colour frame and takes its gray itself.
+            const vr = frame.visibleRect || { x: 0, y: 0, width: frame.codedWidth, height: frame.codedHeight };
+            const bytes = vr.width * vr.height * 4;
+            await frame.copyTo(frameBuffer(bytes), { rect: vr, format: 'RGBA' });
+            pushFrame(frameTime(frame.timestamp * 1e-6), vr.width, vr.height, 4);
+          } catch (e) { feed.status = 'frame failed: ' + (e.message || e); console.error(e); }
+          frame.close();
+        }
+      })();
+      feed.status = 'live (webcodecs)';
+    } else {
+      // Safari has no MediaStreamTrackProcessor on the main thread: as the thin page does, play
+      // the stream in a <video> and read each presented frame back through a canvas
+      // (&camera=canvas forces this path elsewhere). The <video> must be in the document and
+      // playing for iOS to deliver frames, so it sits full size BEHIND the wasm's canvas.
+      video = Object.assign(document.createElement('video'), { playsInline: true, muted: true, autoplay: true });
+      video.setAttribute('playsinline', '');
+      video.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:-1';
+      document.body.prepend(video);
+      video.srcObject = stream;
+      await video.play().catch(() => {});
+      const cv = document.createElement('canvas'), ctx = cv.getContext('2d', { willReadFrequently: true });
+      const onFrame = (now, meta) => {
+        if (!alive) return;
+        const w = video.videoWidth, h = video.videoHeight;
+        if (w && h) {
+          try {
+            if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+            ctx.drawImage(video, 0, 0);
+            frameBuffer(w * h * 4).set(ctx.getImageData(0, 0, w, h).data);
+            pushFrame(meta && meta.captureTime ? meta.captureTime / 1000 : now / 1000, w, h, 4);
+          } catch (e) { feed.status = 'frame failed: ' + (e.message || e); console.error(e); }
+        }
+        video.requestVideoFrameCallback(onFrame);
+      };
+      video.requestVideoFrameCallback(onFrame);
+      feed.status = 'live (video + canvas)';
+    }
+    return () => {
+      alive = false; window.removeEventListener('devicemotion', onMotion); track.stop();
+      if (video) video.remove();
+    };
   }
 
   async function startReplay(dir) {
