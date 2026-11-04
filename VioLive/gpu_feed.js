@@ -14,6 +14,10 @@
 // the wasm got -- and on Stop download it as one .zip in the replay format (replay.json + frames/),
 // so it plays back here with ?replay= unchanged, and Apps/VioLive/replay_to_capture.py turns it
 // into a capture for the native tools. The bar shows its progress (feed.rec).
+// &trace=1: system tracing (VisLog/Trace.hh) -- every wasm thread's spans (VINS, mapper, reseed,
+// main), queue depths and latencies, plus this page's own spans (frame read-back, push, decode),
+// main-thread stalls (requestAnimationFrame gaps) and long tasks -- and on Stop download it as
+// violive_trace_<time>.vislog, which the VisLog viewer opens (trace panel). Combines with &record=1.
 'use strict';
 (() => {
   const params = new URLSearchParams(location.search);
@@ -21,6 +25,55 @@
   let M = null, stopFn = null, frameW = 0, cfgBase = null, imuCount = 0, frameCount = 0;
   let replaySign = null;   // a recording's own accel_sign (replay.json), else the Safari assumption
   const feed = window.violiveFeed = { status: 'loading…', rec: '' };
+
+  // ---- &trace=1 ----
+  const tracing = params.get('trace') === '1';
+  let traceOn = false, traceT0 = null;
+  const tnow = () => M._vl_trace_now_ms();   // the wasm threads' clock, so the spans line up
+  function tspan(name, begin) {
+    if (traceOn) M.ccall('vl_trace_span', null, ['string', 'string', 'number', 'number'], ['page', name, begin, tnow()]);
+  }
+  function tcount(name, v) { if (traceOn) M.ccall('vl_trace_counter', null, ['string', 'number'], [name, v]); }
+  function traceStart() {
+    if (!tracing) return;
+    M._vl_trace_enable(1);
+    traceOn = true; traceT0 = new Date();
+    // Main-thread stalls: the gap between animation frames (16.7 ms when nothing blocks it).
+    let last = null;
+    const raf = () => {
+      if (!traceOn) return;
+      const t = tnow();
+      if (last !== null) tcount('page/raf_gap_ms', t - last);
+      last = t;
+      requestAnimationFrame(raf);
+    };
+    requestAnimationFrame(raf);
+    if (typeof PerformanceObserver !== 'undefined' && (PerformanceObserver.supportedEntryTypes || []).includes('longtask')) {
+      const off = tnow() - performance.now();   // longtask entries are on performance.now()'s clock
+      const po = new PerformanceObserver((list) => {
+        for (const e of list.getEntries())
+          if (traceOn) M.ccall('vl_trace_span', null, ['string', 'string', 'number', 'number'],
+                               ['page long tasks', e.name || 'longtask', e.startTime + off, e.startTime + e.duration + off]);
+      });
+      po.observe({ entryTypes: ['longtask'] });
+      traceStart.po = po;
+    }
+    feed.rec = (feed.rec ? feed.rec + ' · ' : '') + 'tracing';
+  }
+  function traceFinish() {
+    if (!traceOn) return;
+    traceOn = false;
+    if (traceStart.po) traceStart.po.disconnect();
+    M._vl_trace_enable(0);
+    const ptr = M.ccall('vl_trace_export', 'number', ['string'], ['VioLive gpu.html trace: ' + navigator.userAgent]);
+    const bytes = new Uint8Array(M.HEAPU8.buffer, ptr, M._vl_trace_size()).slice();
+    window.__violiveTrace = bytes;
+    const name = 'violive_trace_' + traceT0.toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.vislog';
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([bytes])), download: name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    feed.rec = `saved ${name} (${(bytes.length / 1e6).toFixed(1)} MB)`;
+  }
 
   // ---- &record=1 ----
   // Frames are encoded one at a time on a queue (createImageBitmap is cheap and keeps the frame;
@@ -115,10 +168,17 @@
   }
   function pushMotion(t, a, g) { M._vl_push_motion(t, a[0], a[1], a[2], g[0], g[1], g[2]); imuCount++; }
   function frameBuffer(bytes) { const ptr = M._vl_frame_buffer(bytes, 1, 1); return new Uint8Array(M.HEAPU8.buffer, ptr, bytes); }
+  let lastFrameWall = null;
   function pushFrame(t, w, h, channels) {
     if (!frameW) create(w, h);
+    const b = traceOn ? tnow() : 0;
     if (M._vl_push_frame(t, w, h, channels) !== 0) throw new Error(M.UTF8ToString(M._vl_error()));
     frameCount++;
+    if (traceOn) {
+      tspan('push frame', b);
+      if (lastFrameWall !== null) tcount('page/frame_gap_ms', b - lastFrameWall);
+      lastFrameWall = b;
+    }
   }
 
   const [camW, camH] = (params.get('camera_size') || '640x480').split('x').map(Number);
@@ -163,9 +223,11 @@
             // RGBA for the preview: the wasm keeps the colour frame and takes its gray itself.
             const vr = frame.visibleRect || { x: 0, y: 0, width: frame.codedWidth, height: frame.codedHeight };
             const bytes = vr.width * vr.height * 4;
+            const tb = traceOn ? tnow() : 0;
             await frame.copyTo(frameBuffer(bytes), { rect: vr, format: 'RGBA' });
+            tspan('copyTo RGBA', tb);
             const tf = frameTime(frame.timestamp * 1e-6);
-            if (rec) await recFrame(tf, frame, vr.width, vr.height);   // kept even if the estimator refuses it
+            if (rec) { const tr = traceOn ? tnow() : 0; await recFrame(tf, frame, vr.width, vr.height); tspan('record frame', tr); }
             pushFrame(tf, vr.width, vr.height, 4);
           } catch (e) { feed.status = 'frame failed: ' + (e.message || e); console.error(e); }
           frame.close();
@@ -190,8 +252,10 @@
         if (w && h) {
           try {
             if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+            const tb = traceOn ? tnow() : 0;
             ctx.drawImage(video, 0, 0);
             frameBuffer(w * h * 4).set(ctx.getImageData(0, 0, w, h).data);
+            tspan('canvas read-back', tb);
             const tf = meta && meta.captureTime ? meta.captureTime / 1000 : now / 1000;
             if (rec) recFrame(tf, cv, w, h);   // kept even if the estimator refuses it
             pushFrame(tf, w, h, 4);
@@ -235,12 +299,14 @@
       try {
         for (let fi = 0; fi < meta.frames.length && alive; fi++) {
           const tf = meta.frames[fi][0];
+          const td = traceOn ? tnow() : 0;
           const bmp = await createImageBitmap(blobs[fi]);
           ctx.drawImage(bmp, 0, 0); bmp.close();
           if (cover && tf - meta.frames[0][0] >= cover[0] && tf - meta.frames[0][0] < cover[1]) {
             ctx.fillStyle = '#000'; ctx.fillRect(0, 0, meta.width, meta.height);
           }
           const img = ctx.getImageData(0, 0, meta.width, meta.height);
+          tspan('decode replay frame', td);
           if (!fast) {
             const wait = wall0 + (tf - t0) - performance.now() / 1000;
             if (wait > 0) await new Promise((r) => setTimeout(r, wait * 1000));
@@ -270,6 +336,7 @@
     if (!M || stopFn) return;
     cfgBase = JSON.parse(cfgJson); frameW = 0; imuCount = 0; frameCount = 0;
     window.__violiveReplayDone = false;
+    traceStart();
     try {
       stopFn = params.get('replay') ? await startReplay(params.get('replay')) : await startLive();
     } catch (e) { feed.status = 'could not start: ' + (e.message || e); console.error(e); }
@@ -277,7 +344,8 @@
   feed.stop = () => {
     if (stopFn) stopFn();
     stopFn = null;
-    if (M) M._vl_destroy();
+    if (M) M._vl_destroy();   // joins the VINS and mapper threads, so their last spans are in
+    if (M) traceFinish();
     feed.status = 'stopped';
     if (rec) recFinish().catch((e) => { feed.rec = 'saving failed: ' + (e.message || e); console.error(e); });
   };
