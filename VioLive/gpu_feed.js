@@ -10,15 +10,102 @@
 // Start button (or &autostart, which VioLiveApp.cc handles); status -- one line, shown on the bar.
 // ?replay=<dir> &fast=1 &cover=a:b &config=<json> as on the thin page. There is no &preset /
 // &online_td / &td_method: the app runs one configuration (VioLiveApp.cc kConfig).
+// &record=1: keep everything pushed -- every motion row and every frame (as JPEG), with the times
+// the wasm got -- and on Stop download it as one .zip in the replay format (replay.json + frames/),
+// so it plays back here with ?replay= unchanged, and Apps/VioLive/replay_to_capture.py turns it
+// into a capture for the native tools. The bar shows its progress (feed.rec).
 'use strict';
 (() => {
   const params = new URLSearchParams(location.search);
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   let M = null, stopFn = null, frameW = 0, cfgBase = null, imuCount = 0, frameCount = 0;
-  const feed = window.violiveFeed = { status: 'loading…' };
+  let replaySign = null;   // a recording's own accel_sign (replay.json), else the Safari assumption
+  const feed = window.violiveFeed = { status: 'loading…', rec: '' };
+
+  // ---- &record=1 ----
+  // Frames are encoded one at a time on a queue (createImageBitmap is cheap and keeps the frame;
+  // the JPEG encode is the slow part). A queue that falls 60 behind drops the NEWEST frames from
+  // the recording (counted), never from what the estimator gets.
+  const recording = params.get('record') === '1';
+  let rec = null;
+  function recStart(info) {
+    rec = { imu: [], frames: [], blobs: [], crcs: [], queue: [], busy: false, dropped: 0, bytes: 0, w: 0, h: 0,
+            t0: new Date(), info, canvas: null, ctx: null };
+  }
+  function recMotion(t, a, g) { if (rec) rec.imu.push([t, a[0], a[1], a[2], g[0], g[1], g[2]]); }
+  async function recFrame(t, source, w, h) {
+    if (!rec) return;
+    if (rec.queue.length > 60) { rec.dropped++; return; }
+    rec.w = w; rec.h = h;
+    rec.queue.push({ t, bmp: await createImageBitmap(source) });
+    if (!rec.busy) recDrain();
+  }
+  async function recDrain() {
+    rec.busy = true;
+    while (rec && rec.queue.length) {
+      const { t, bmp } = rec.queue.shift();
+      if (!rec.canvas) { rec.canvas = new OffscreenCanvas(bmp.width, bmp.height); rec.ctx = rec.canvas.getContext('2d'); }
+      rec.ctx.drawImage(bmp, 0, 0); bmp.close();
+      const blob = await rec.canvas.convertToBlob({ type: 'image/jpeg', quality: 0.95 });
+      const name = `frames/${String(rec.frames.length).padStart(6, '0')}.jpg`;
+      rec.frames.push([t, name]); rec.blobs.push(blob); rec.bytes += blob.size;
+      rec.crcs.push(crc32(new Uint8Array(await blob.arrayBuffer())));
+      feed.rec = `recording ${rec.frames.length} frames, ${rec.imu.length} imu, ${(rec.bytes / 1e6).toFixed(1)} MB` +
+                 (rec.dropped ? `, ${rec.dropped} frames not kept` : '');
+    }
+    if (rec) rec.busy = false;
+  }
+  async function recFinish() {
+    if (!rec) return;
+    const r = rec;
+    feed.rec = 'saving the recording…';
+    while (r.busy || r.queue.length) await new Promise((res) => setTimeout(res, 50));
+    rec = null;
+    const meta = { width: r.w, height: r.h, frames: r.frames, imu: r.imu,
+                   accel_sign: isSafari ? -1 : 1, source: 'VioLive gpu.html recorder', recorded: r.t0.toISOString(),
+                   user_agent: navigator.userAgent, camera: r.info, frames_not_kept: r.dropped };
+    const name = 'violive_' + r.t0.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const files = [{ name: name + '/replay.json', blob: new Blob([JSON.stringify(meta)]), crc: null }];
+    r.frames.forEach((f, i) => files.push({ name: name + '/' + f[1], blob: r.blobs[i], crc: r.crcs[i] }));
+    const zip = await zipStore(files);
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(zip), download: name + '.zip' });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    feed.rec = `saved ${name}.zip: ${r.frames.length} frames, ${r.imu.length} imu, ${(zip.size / 1e6).toFixed(1)} MB` +
+               (r.dropped ? ` (${r.dropped} frames not kept)` : '');
+    window.__violiveRecording = { name, frames: r.frames.length, imu: r.imu.length, bytes: zip.size, dropped: r.dropped };
+  }
+  // CRC-32 (zip's) and a STORE-only zip writer: no compression (JPEGs do not compress), no zip64
+  // (a recording stays far below 4 GB).
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  async function zipStore(files) {
+    const enc = new TextEncoder(), parts = [], central = [];
+    let off = 0;
+    for (const f of files) {
+      const name = enc.encode(f.name), size = f.blob.size;
+      const crc = f.crc !== null ? f.crc : crc32(new Uint8Array(await f.blob.arrayBuffer()));
+      const h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);   // utf-8 names
+      h.setUint32(14, crc, true); h.setUint32(18, size, true); h.setUint32(22, size, true); h.setUint16(26, name.length, true);
+      parts.push(h, name, f.blob);
+      const c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true);
+      c.setUint32(16, crc, true); c.setUint32(20, size, true); c.setUint32(24, size, true); c.setUint16(28, name.length, true);
+      c.setUint32(42, off, true);
+      central.push(c, name);
+      off += 30 + name.length + size;
+    }
+    const cdSize = central.reduce((n, p) => n + p.byteLength, 0);
+    const e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+    e.setUint32(12, cdSize, true); e.setUint32(16, off, true);
+    return new Blob([...parts, ...central, e], { type: 'application/zip' });
+  }
 
   function create(w, h) {
-    const cfg = Object.assign({}, cfgBase, { camera_wh: [w, h], accel_sign: isSafari || params.get('replay') ? -1 : 1 });
+    const sign = replaySign !== null ? replaySign : (isSafari || params.get('replay') ? -1 : 1);
+    const cfg = Object.assign({}, cfgBase, { camera_wh: [w, h], accel_sign: sign });
     if (params.get('fast')) cfg.threaded = false;
     if (params.get('config')) Object.assign(cfg, JSON.parse(params.get('config')));
     if (M.ccall('vl_create', 'number', ['string'], [JSON.stringify(cfg)]) !== 0)
@@ -34,6 +121,7 @@
     frameCount++;
   }
 
+  const [camW, camH] = (params.get('camera_size') || '640x480').split('x').map(Number);
   async function startLive() {
     if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
       const r = await DeviceMotionEvent.requestPermission();
@@ -41,15 +129,21 @@
     }
     const onMotion = (e) => {
       const a = e.accelerationIncludingGravity, r = e.rotationRate;
-      if (!a || !r || a.x === null || r.alpha === null || !frameW) return;
-      const d = Math.PI / 180;
-      pushMotion(e.timeStamp / 1000, [a.x, a.y, a.z], [r.alpha * d, r.beta * d, r.gamma * d]);
+      if (!a || !r || a.x === null || r.alpha === null) return;
+      const d = Math.PI / 180, t = e.timeStamp / 1000, acc = [a.x, a.y, a.z], gyr = [r.alpha * d, r.beta * d, r.gamma * d];
+      recMotion(t, acc, gyr);   // recorded from the first event, whether or not the estimator runs yet
+      if (frameW) pushMotion(t, acc, gyr);
     };
     window.addEventListener('devicemotion', onMotion);
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } } });
+      // &camera_size=WxH asks for another size (e.g. 480x640, the portrait stream a phone gives).
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: camW }, height: { ideal: camH }, frameRate: { ideal: 30 } } });
     const track = stream.getVideoTracks()[0];
+    if (recording) {   // the camera's settings, minus the per-site device identifiers
+      const { deviceId, groupId, ...settings } = track.getSettings ? track.getSettings() : {};
+      recStart(settings);
+    }
     let alive = true, ownClock = null, minDelay = Infinity;
     const frameTime = (tsSec) => {
       const now = performance.now() / 1000;
@@ -70,7 +164,9 @@
             const vr = frame.visibleRect || { x: 0, y: 0, width: frame.codedWidth, height: frame.codedHeight };
             const bytes = vr.width * vr.height * 4;
             await frame.copyTo(frameBuffer(bytes), { rect: vr, format: 'RGBA' });
-            pushFrame(frameTime(frame.timestamp * 1e-6), vr.width, vr.height, 4);
+            const tf = frameTime(frame.timestamp * 1e-6);
+            if (rec) await recFrame(tf, frame, vr.width, vr.height);   // kept even if the estimator refuses it
+            pushFrame(tf, vr.width, vr.height, 4);
           } catch (e) { feed.status = 'frame failed: ' + (e.message || e); console.error(e); }
           frame.close();
         }
@@ -96,7 +192,9 @@
             if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
             ctx.drawImage(video, 0, 0);
             frameBuffer(w * h * 4).set(ctx.getImageData(0, 0, w, h).data);
-            pushFrame(meta && meta.captureTime ? meta.captureTime / 1000 : now / 1000, w, h, 4);
+            const tf = meta && meta.captureTime ? meta.captureTime / 1000 : now / 1000;
+            if (rec) recFrame(tf, cv, w, h);   // kept even if the estimator refuses it
+            pushFrame(tf, w, h, 4);
           } catch (e) { feed.status = 'frame failed: ' + (e.message || e); console.error(e); }
         }
         video.requestVideoFrameCallback(onFrame);
@@ -112,6 +210,7 @@
 
   async function startReplay(dir) {
     const meta = await (await fetch(dir + '/replay.json')).json();
+    replaySign = typeof meta.accel_sign === 'number' ? meta.accel_sign : null;
     feed.status = `replay: fetching ${meta.frames.length} frames…`;
     const blobs = await Promise.all(meta.frames.map((f) => fetch(dir + '/' + f[1]).then((r) => r.blob())));
     const fast = !!params.get('fast');
@@ -170,6 +269,7 @@
     stopFn = null;
     if (M) M._vl_destroy();
     feed.status = 'stopped';
+    if (rec) recFinish().catch((e) => { feed.rec = 'saving failed: ' + (e.message || e); console.error(e); });
   };
   // For tests: the run's counters (the drawn state is the wasm's own).
   window.__violiveFeed = () => ({ frames: frameCount, imu: imuCount, status: feed.status });
