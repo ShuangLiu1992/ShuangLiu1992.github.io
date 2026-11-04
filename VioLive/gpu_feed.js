@@ -212,7 +212,17 @@
     const meta = await (await fetch(dir + '/replay.json')).json();
     replaySign = typeof meta.accel_sign === 'number' ? meta.accel_sign : null;
     feed.status = `replay: fetching ${meta.frames.length} frames…`;
-    const blobs = await Promise.all(meta.frames.map((f) => fetch(dir + '/' + f[1]).then((r) => r.blob())));
+    // At most 16 fetches in flight: a minute-long recording is ~1800 frames, and fetching them all
+    // at once fails in Chromium (net::ERR_INSUFFICIENT_RESOURCES).
+    const blobs = new Array(meta.frames.length);
+    let next = 0;
+    await Promise.all(Array.from({ length: 16 }, async () => {
+      while (next < meta.frames.length) {
+        const k = next++;
+        blobs[k] = await (await fetch(dir + '/' + meta.frames[k][1])).blob();
+        if (k % 100 === 0) feed.status = `replay: fetched ${k} / ${meta.frames.length} frames…`;
+      }
+    }));
     const fast = !!params.get('fast');
     const cover = params.get('cover') && params.get('cover').split(':').map(Number);
     const cv = new OffscreenCanvas(meta.width, meta.height), ctx = cv.getContext('2d', { willReadFrequently: true });
