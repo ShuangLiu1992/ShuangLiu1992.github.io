@@ -14,7 +14,7 @@
 // the wasm got -- and on Stop download it as one .zip in the replay format (replay.json + frames/),
 // so it plays back here with ?replay= unchanged, and Apps/VioLive/replay_to_capture.py turns it
 // into a capture for the native tools. The bar shows its progress (feed.rec).
-// &trace=1: system tracing (VisLog/Trace.hh) -- every wasm thread's spans (VINS, mapper, reseed,
+// &trace=1: system tracing (VisTrace/Trace.hh) -- every wasm thread's spans (VINS, mapper, reseed,
 // main), queue depths and latencies, plus this page's own spans (frame read-back, push, decode),
 // main-thread stalls (requestAnimationFrame gaps) and long tasks -- and on Stop download it as
 // violive_trace_<time>.vislog, which the VisLog viewer opens (trace panel). Combines with &record=1.
