@@ -16,8 +16,9 @@
 </head>
 <body>
 <!-- CalibLive's phone app (CalibLiveApp.cc): Entry + WebGPU + ImGui draw everything into #canvas;
-     calib_feed.js owns the camera. Needs WebGPU and JSPI (Chrome/Edge 137+, Safari 27+) and
-     cross-origin isolation (tests/web/serve.py, or coi_sw.js on a static host). -->
+     the camera is VisBase's WebSensor inside the wasm (it loads WebSensorWorker.js from this
+     directory), calib_feed.js is the status / cookie / jump glue. Needs WebGPU and JSPI (Chrome/Edge
+     137+, Safari 27+) and cross-origin isolation (tests/web/serve.py, or coi_sw.js on a static host). -->
 <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 <div id="gate"></div>
 <script>
