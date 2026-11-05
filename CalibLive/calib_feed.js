@@ -14,9 +14,10 @@
 // the jump to VioLive carries it, and &stats=, through unchanged.
 // &camera=canvas takes the frames through the <video> + canvas readback even where the browser has
 // MediaStreamTrackProcessor: the path iOS Safari always takes, so a desktop browser can test it.
-// The camera is watched: a track that ends, or no frame for 3 s while the page is visible, stops it
-// for real and shows Retry; coming back to the page restarts it by itself. The screen stays on
-// (wake lock) while the camera runs.
+// The camera is watched. No frame for 3 s while the page is visible (iOS mutes a track it
+// interrupts without ending it) restarts the camera by itself, once: if the restart gives no frame
+// either, it stops and shows Retry. A track that ends stops it and shows Retry; coming back to the
+// page restarts it by itself. The screen stays on (wake lock) while the camera runs.
 'use strict';
 (() => {
   const params = new URLSearchParams(location.search);
@@ -27,6 +28,7 @@
   let M = null, running = false, opened = false, pollTimer = null, jumpTimer = null, jumpAt = 0;
   let cookieSeq = 0, dropSeq = 0, lastFrames = 0;
   let needRestart = false;   // the camera ended or stalled (not stopped by the user): restart when the page is visible again
+  let autoRestarted = false; // this camera is the stall's automatic restart: a second stall shows Retry
   let lastFrameAt = 0, gotFrame = false, wake = null, wakeWanted = false, wakePending = false;
   const feed = window.calibFeed = Object.assign(window.calibFeed || {}, {
     status: 'loading…', saved: '', countdown: 0, device: { id: '', label: '' }, autostart: false,
@@ -147,9 +149,14 @@
     }
     if (!opened) return;   // still asking for permission / opening: no stall clock yet
     if (c.frames !== lastFrames) { lastFrames = c.frames; lastFrameAt = performance.now(); gotFrame = c.frames > 0; }
+    if (gotFrame) autoRestarted = false;   // the restart worked: a later stall gets its own
     const limit = gotFrame ? STALL_MS : FIRST_FRAME_MS;
-    if (document.visibilityState === 'visible' && performance.now() - lastFrameAt > limit)
-      lost(new Error('no camera frame for ' + limit / 1000 + ' s'));
+    if (document.visibilityState !== 'visible' || performance.now() - lastFrameAt <= limit) return;
+    const e = new Error('no camera frame for ' + limit / 1000 + ' s');
+    if (autoRestarted) { lost(e); return; }
+    console.warn(e.message + ': restarting the camera');
+    stopCamera();
+    start(true);
   }
 
   feed.ready = (mod) => {
@@ -161,8 +168,10 @@
     pollTimer = setInterval(() => { try { poll(); } catch (e) { console.error(e); } }, 200);
     if (feed.autostart) feed.start();
   };
-  feed.start = () => {
+  // auto: the stall's automatic restart (start() from the bar or the page clears it).
+  function start(auto) {
     if (!M || running) return;
+    autoRestarted = auto;
     running = true;
     opened = false;
     needRestart = false;
@@ -170,7 +179,8 @@
     lastFrames = 0;
     feed.status = 'Starting the camera…';
     M._cl_camera_start(camW, camH, params.get('camera') === 'canvas' ? 1 : 0);
-  };
+  }
+  feed.start = () => start(false);
   feed.stop = () => {
     needRestart = false;
     stopCamera();

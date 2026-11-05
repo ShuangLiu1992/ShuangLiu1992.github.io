@@ -20,22 +20,7 @@
      Safari 27+) and cross-origin isolation (tests/web/serve.py, or coi_sw.js on a static host). -->
 <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 <div id="gate"></div>
-<script>
-  // One flag per page directory: sessionStorage is shared by the whole origin, and CalibLive's
-  // worker (scope /CalibLive/) does not cover /VioLive/, which must register its own.
-  const coiKey = 'coiReloaded:' + location.pathname.replace(/[^/]*$/, '');
-  if (!self.crossOriginIsolated && 'serviceWorker' in navigator && !sessionStorage.getItem(coiKey)) {
-    sessionStorage.setItem(coiKey, '1');
-    // Reload only once the worker is ACTIVE: register() resolves while it is still installing, and a
-    // reload that beats it comes back unisolated with the flag already set (nothing retries).
-    navigator.serviceWorker.register('coi_sw.js').then(async (reg) => {
-      const sw = reg.installing || reg.waiting || reg.active;
-      if (sw && sw.state !== 'activated')
-        await new Promise((done) => sw.addEventListener('statechange', () => { if (sw.state === 'activated') done(); }));
-      location.reload();
-    });
-  }
-</script>
+<script src="coi_boot.js"></script>
 <script src="../CalibLive/calib_cookie.js"></script>
 <script src="gpu_feed.js"></script>
 <script type="module">

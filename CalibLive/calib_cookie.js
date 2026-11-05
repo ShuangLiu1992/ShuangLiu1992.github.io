@@ -3,6 +3,11 @@
 // WebKit caps a script-set cookie at 7 days, so the same JSON is also kept in localStorage
 // (key vis_camera_calib); read() falls back to it when the cookie is gone and re-sets the cookie.
 // VioLive re-writes the record it read, which restarts the cookie's clock.
+// WebKit also deletes ALL of a site's script-written storage, localStorage included, after 7 days in
+// which the user did not use the site (ITP); no page can stop that. A visit to CalibLive or VioLive
+// restarts that clock too; after 7 days away the phone is calibrated again. write() asks for
+// persistent storage (navigator.storage.persist), which keeps the copy through storage-pressure
+// eviction; it does not exempt it from ITP, and its answer is not needed.
 //   cookie  vis_camera_calib = encodeURIComponent(JSON)   Path=/  Max-Age=1 year+  SameSite=Lax
 //   JSON    {v:1, camera:{width,height,fx,fy,cx,cy,distortion_model:'RadTan',distortion:[k1,k2,p1,p2,0]},
 //            rms_px, views, date, ua, device_id, label}
@@ -33,6 +38,9 @@
     var json = JSON.stringify(rec);
     document.cookie = NAME + '=' + encodeURIComponent(json) + attrs(MAX_AGE);
     storeSet(json);
+    try {
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {});
+    } catch (e) { /* no StorageManager */ }
   }
 
   function forget() {
