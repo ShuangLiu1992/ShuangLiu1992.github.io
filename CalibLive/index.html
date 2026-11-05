@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CalibLive</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f4f4f2; --fg: #1d1d1f; --muted: #5d5d63; --panel: #fff; --line: #d7d7d2; --accent: #0a60d0; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17171a; --fg: #ececee; --muted: #a0a0a8; --panel: #232327; --line: #38383e; --accent: #6aa8ff; } }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--fg); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { height: 100%; display: flex; gap: 16px; padding: 16px; }
+  .stage { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .stage img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .stage:fullscreen { border: 0; border-radius: 0; }
+  aside { flex: 0 0 260px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; align-self: flex-start; }
+  aside img { width: 100%; max-width: 220px; aspect-ratio: 1; image-rendering: pixelated; background: #fff; border-radius: 4px; }
+  h1 { font-size: 1.15rem; margin: 0; }
+  p { margin: 0; }
+  .url { font-size: .8rem; color: var(--muted); word-break: break-all; }
+  .url a { color: var(--accent); }
+  .note { font-size: .85rem; color: var(--muted); }
+  button { font: inherit; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  [hidden] { display: none !important; }
+  /* Taller than wide: the board takes the width, the panel goes below it. */
+  @media (orientation: portrait) {
+    main { flex-direction: column; overflow: auto; }
+    .stage { flex: 0 1 auto; aspect-ratio: 132 / 96; width: 100%; max-height: 62vh; }
+    aside { flex: 0 0 auto; width: 100%; align-self: stretch; }
+    aside img { max-width: 180px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="stage" id="stage"><img src="board.svg" alt="Calibration board" draggable="false"></div>
+  <aside>
+    <h1>CalibLive</h1>
+    <img src="qr.svg" alt="QR code for the phone page">
+    <p>Scan with your phone, then point it at this board</p>
+    <p class="url"><a href="calibrate.html">shuangliu1992.github.io/CalibLive/calibrate.html</a></p>
+    <button id="full" type="button">Full screen</button>
+    <p class="note" id="local" hidden>The QR code opens the public site; on this computer use calibrate.html from your phone by its network address.</p>
+  </aside>
+</main>
+<script>
+  (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1') document.getElementById('local').hidden = false;
+    var stage = document.getElementById('stage'), btn = document.getElementById('full');
+    if (!stage.requestFullscreen) { btn.hidden = true; return; }
+    btn.addEventListener('click', function () {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else stage.requestFullscreen().catch(function () {});
+    });
+  })();
+</script>
+</body>
+</html>

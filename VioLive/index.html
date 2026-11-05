@@ -55,9 +55,19 @@
 <script>
   // SharedArrayBuffer needs cross-origin isolation. tests/web/serve.py sends the headers; a static
   // host that cannot gets them from coi_sw.js (registered once, then the page reloads).
-  if (!self.crossOriginIsolated && 'serviceWorker' in navigator && !sessionStorage.coiReloaded) {
-    sessionStorage.coiReloaded = '1';
-    navigator.serviceWorker.register('coi_sw.js').then(() => location.reload());
+  // One flag per page directory: sessionStorage is shared by the whole origin, and CalibLive's
+  // worker (scope /CalibLive/) does not cover /VioLive/, which must register its own.
+  const coiKey = 'coiReloaded:' + location.pathname.replace(/[^/]*$/, '');
+  if (!self.crossOriginIsolated && 'serviceWorker' in navigator && !sessionStorage.getItem(coiKey)) {
+    sessionStorage.setItem(coiKey, '1');
+    // Reload only once the worker is ACTIVE: register() resolves while it is still installing, and a
+    // reload that beats it comes back unisolated with the flag already set (nothing retries).
+    navigator.serviceWorker.register('coi_sw.js').then(async (reg) => {
+      const sw = reg.installing || reg.waiting || reg.active;
+      if (sw && sw.state !== 'activated')
+        await new Promise((done) => sw.addEventListener('statechange', () => { if (sw.state === 'activated') done(); }));
+      location.reload();
+    });
   }
 </script>
 <script src="VioLive.js"></script>

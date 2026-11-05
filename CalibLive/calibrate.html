@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Calibrate camera</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #eee; overflow: hidden;
+               font: 15px/1.35 -apple-system, system-ui, sans-serif; }
+  #canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+  #gate { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+          padding: 16px; text-align: center; }
+  #gate button { font: 28px -apple-system, system-ui; padding: 22px 40px; border-radius: 16px; border: 0;
+                 background: #2f7df6; color: #fff; }
+</style>
+</head>
+<body>
+<!-- CalibLive's phone app (CalibLiveApp.cc): Entry + WebGPU + ImGui draw everything into #canvas;
+     calib_feed.js owns the camera. Needs WebGPU and JSPI (Chrome/Edge 137+, Safari 27+) and
+     cross-origin isolation (tests/web/serve.py, or coi_sw.js on a static host). -->
+<canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+<div id="gate"></div>
+<script>
+  // One flag per page directory: sessionStorage is shared by the whole origin, and CalibLive's
+  // worker (scope /CalibLive/) does not cover /VioLive/, which must register its own.
+  const coiKey = 'coiReloaded:' + location.pathname.replace(/[^/]*$/, '');
+  if (!self.crossOriginIsolated && 'serviceWorker' in navigator && !sessionStorage.getItem(coiKey)) {
+    sessionStorage.setItem(coiKey, '1');
+    // Reload only once the worker is ACTIVE: register() resolves while it is still installing, and a
+    // reload that beats it comes back unisolated with the flag already set (nothing retries).
+    navigator.serviceWorker.register('coi_sw.js').then(async (reg) => {
+      const sw = reg.installing || reg.waiting || reg.active;
+      if (sw && sw.state !== 'activated')
+        await new Promise((done) => sw.addEventListener('statechange', () => { if (sw.state === 'activated') done(); }));
+      location.reload();
+    });
+  }
+</script>
+<script src="calib_cookie.js"></script>
+<script src="calib_feed.js"></script>
+<script type="module">
+  const gate = document.getElementById('gate');
+  const jspi = typeof WebAssembly === 'object' && 'Suspending' in WebAssembly;
+  const load = async () => {
+    gate.remove();
+    // As shell.html.in: SDL sizes its window from the canvas's INLINE style, not the stylesheet
+    // (a stylesheet-only size leaves the window 0x0 and the main loop never renders).
+    const canvas = document.getElementById('canvas');
+    canvas.style.width = `${window.innerWidth}px`;
+    canvas.style.height = `${window.innerHeight}px`;
+    (await import('./CalibLiveApp.js')).default();
+  };
+  if (!jspi || !navigator.gpu) {
+    gate.textContent = 'This demo needs a newer browser: Chrome or Edge 137+, or Safari 27+.';
+  } else if (new URLSearchParams(location.search).get('autostart')) {
+    window.calibFeed.autostart = true;
+    load();
+  } else {
+    // One tap first, as VioLive's page has: it starts the camera from a user gesture.
+    const b = document.createElement('button');
+    b.textContent = 'Calibrate camera';
+    b.onclick = () => { window.calibFeed.autostart = true; load(); };
+    gate.append(b);
+  }
+</script>
+</body>
+</html>

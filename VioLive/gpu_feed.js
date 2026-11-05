@@ -156,11 +156,26 @@
     return new Blob([...parts, ...central, e], { type: 'application/zip' });
   }
 
+  // The phone's saved calibration (CalibLive's cookie, via ../CalibLive/calib_cookie.js). Absent file
+  // -> window.visCalib undefined -> the default camera, silently.
+  let trackDeviceId = '', trackLabel = '';   // the live track's deviceId and label; '' for a replay
   function create(w, h) {
     const sign = replaySign !== null ? replaySign : (isSafari || params.get('replay') ? -1 : 1);
     const cfg = Object.assign({}, cfgBase, { camera_wh: [w, h], accel_sign: sign });
     if (params.get('fast')) cfg.threaded = false;
-    if (params.get('config')) Object.assign(cfg, JSON.parse(params.get('config')));
+    const over = params.get('config') ? JSON.parse(params.get('config')) : {};
+    if (over.camera) {
+      feed.camera = 'camera: from config';   // &config= wins over the saved calibration
+    } else if (window.visCalib) {
+      const saved = window.visCalib.read();
+      if (saved.ok) window.visCalib.write(saved.rec);   // the same record again: restarts the cookie's clock
+      const d = window.visCalib.decide(saved, w, h, trackDeviceId, trackLabel);
+      if (d.camera) cfg.camera = d.camera;
+      feed.camera = 'camera: ' + d.note;
+    } else {
+      feed.camera = 'camera: default (iPhone reference)';
+    }
+    Object.assign(cfg, over);
     if (M.ccall('vl_create', 'number', ['string'], [JSON.stringify(cfg)]) !== 0)
       throw new Error(M.UTF8ToString(M._vl_error()));
     console.log('[violive] resolved', JSON.parse(M.UTF8ToString(M._vl_resolved())));
@@ -181,7 +196,32 @@
     }
   }
 
+  // Keep the screen on while the camera runs. Failures (no API, refused, page hidden) are ignored;
+  // the lock is dropped when the page hides, so coming back asks again.
+  let wake = null, wakeWanted = false, wakePending = false;
+  async function acquireWake() {
+    if (!wakeWanted || wake || wakePending || !navigator.wakeLock) return;
+    wakePending = true;   // camera start and a quick visibilitychange must not both take a lock
+    try {
+      const w = await navigator.wakeLock.request('screen');
+      if (!wakeWanted) { w.release().catch(() => {}); return; }
+      wake = w;
+      w.addEventListener('release', () => { if (wake === w) wake = null; });
+    } catch (e) { /* ignored */ } finally { wakePending = false; }
+  }
+  function releaseWake() {
+    wakeWanted = false;
+    const w = wake;
+    wake = null;
+    try { if (w) w.release().catch(() => {}); } catch (e) { /* ignored */ }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') acquireWake(); });
+
   const [camW, camH] = (params.get('camera_size') || '640x480').split('x').map(Number);
+  function savedDeviceId() {
+    const r = window.visCalib && window.visCalib.read();
+    return r && r.ok && r.rec.device_id ? r.rec.device_id : '';
+  }
   async function startLive() {
     if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
       const r = await DeviceMotionEvent.requestPermission();
@@ -198,8 +238,14 @@
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       // &camera_size=WxH asks for another size (e.g. 480x640, the portrait stream a phone gives).
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: camW }, height: { ideal: camH }, frameRate: { ideal: 30 } } });
+      // The calibrated lens, when the saved calibration names one.
+      video: Object.assign({ facingMode: { ideal: 'environment' }, width: { ideal: camW }, height: { ideal: camH }, frameRate: { ideal: 30 } },
+                           savedDeviceId() ? { deviceId: { ideal: savedDeviceId() } } : {}) });
     const track = stream.getVideoTracks()[0];
+    wakeWanted = true;   // the camera is on
+    acquireWake();
+    trackDeviceId = (track.getSettings && track.getSettings().deviceId) || '';
+    trackLabel = track.label || '';
     if (recording) {   // the camera's settings, minus the per-site device identifiers
       const { deviceId, groupId, ...settings } = track.getSettings ? track.getSettings() : {};
       recStart(settings);
@@ -267,7 +313,7 @@
       feed.status = 'live (video + canvas)';
     }
     return () => {
-      alive = false; window.removeEventListener('devicemotion', onMotion); track.stop();
+      alive = false; window.removeEventListener('devicemotion', onMotion); releaseWake(); track.stop();
       if (video) video.remove();
     };
   }
@@ -334,7 +380,7 @@
   };
   feed.start = async (cfgJson) => {
     if (!M || stopFn) return;
-    cfgBase = JSON.parse(cfgJson); frameW = 0; imuCount = 0; frameCount = 0;
+    cfgBase = JSON.parse(cfgJson); frameW = 0; trackDeviceId = ''; trackLabel = ''; imuCount = 0; frameCount = 0;
     window.__violiveReplayDone = false;
     traceStart();
     try {
@@ -350,7 +396,9 @@
     if (rec) recFinish().catch((e) => { feed.rec = 'saving failed: ' + (e.message || e); console.error(e); });
   };
   // For tests: the run's counters (the drawn state is the wasm's own).
-  window.__violiveFeed = () => ({ frames: frameCount, imu: imuCount, status: feed.status });
+  window.__violiveFeed = () => ({ frames: frameCount, imu: imuCount, status: feed.status, camera: feed.camera });
+  // For tests: the configuration the wasm resolved (its camera among it).
+  window.__violiveResolved = () => M && JSON.parse(M.UTF8ToString(M._vl_resolved()));
   // For tests: the anchors, their note and the smoother, as the app holds them (VioLiveApp.cc vla_state).
   window.__violiveAnchors = () => M && JSON.parse(M.UTF8ToString(M._vla_state()));
 })();
